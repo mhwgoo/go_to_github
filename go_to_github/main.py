@@ -7,7 +7,7 @@ from pathlib import Path
 import requests
 from lxml import etree
 from fake_user_agent.main import user_agent
-import settings
+from . import settings
 
 
 ua = user_agent()
