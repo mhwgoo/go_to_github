@@ -9,7 +9,6 @@ author = "Kate Wang"
 author-email = "kate.wang2018@gmail.com"
 home-page = "https://github.com/KateWang2016/go_to_github"
 classifiers = [ "License :: OSI Approved :: MIT License",]
-description-file = "README.md"
 
 requires = ["lxml", "fake_user_agent", "requests"]
 
