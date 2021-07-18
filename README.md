@@ -7,11 +7,13 @@ It might be in need for people who come from coutries blocking github.
 # Usage
 On your terminal:
 ```python
-# don't forget `sudo`
-# since github ip will be updated if it cannot connect to github.com
-# in your `\private\etc\hosts` file, which requires root user 
 sudo gotogithub
+
 ```
+Don't forget `sudo`. Github ip will be updated if the program detects that you cannot connect to github.com. The update happens in your `/private/etc/hosts` file, which requires root user. 
+
+Meanwhile, before any modification, your original hosts file will be copied to `~/.local/share/gotogithub/hosts`. If the program fails to connect to github in the end, it will restore the backup hosts file automatically to `/private/etc/hosts`.
+
 # Installation
 ```python
 pip install go_to_github
