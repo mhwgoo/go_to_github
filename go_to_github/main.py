@@ -154,17 +154,9 @@ def main():
                 parsed_ip = parse(res.text)
                 backup()
                 read_and_write(parsed_ip)
-                is_reachable = test_url(settings.GITHUB_URL)
-                if is_reachable:
-                    print("Problem has been fixed. Now, you are good to go!\n")
-                    sys.exit()
-                else:
-                    try:
-                        server_ip = get_server_ip(settings.GITHUB_URL)
-                    except:
-                        pass
-                    else:
-                        print(f"Github server IP is <{server_ip}>")
+                try:
+                    is_reachable = test_url(settings.GITHUB_URL)
+                except:
                     hosts_github_ip = get_hosts_githubip()
                     print(f"Github parsed IP is <{parsed_ip}>.")
                     print(f"Github hosts IP is <{hosts_github_ip}>.\n")
@@ -174,8 +166,9 @@ def main():
                         print("Something went wrong. Please try gotogithub again.\n")
                         restore_backup()
                     sys.exit()
-            else:
-                sys.exit()
+                else:
+                    print("Problem has been fixed. Now, you are good to go!\n")
+                    sys.exit()
     except KeyboardInterrupt:
         print("Opt out by you.")
 
