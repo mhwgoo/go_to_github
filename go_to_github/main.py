@@ -15,7 +15,9 @@ headers = {"User-Agent": ua}
 
 def fetch(url, proxies=None):
     try:
-        with requests.get(url, headers=headers, timeout=9, proxies=proxies) as r:
+        with requests.get(
+            url, headers=headers, timeout=(9.05, 12), proxies=proxies
+        ) as r:
             r.raise_for_status()
     except requests.exceptions.ConnectionError as e:
         print(f"Connection rejected to <{url}>.\nReason: <{repr(e)}>.\n")
@@ -121,7 +123,7 @@ def test_url(url, proxies=None):
 def get_server_ip(url, proxies=None):
     try:
         with requests.get(
-            url, headers=headers, timeout=9, stream=True, proxies=proxies
+            url, headers=headers, timeout=(9.05, 12), stream=True, proxies=proxies
         ) as r:
             r.raise_for_status()
             # NOTE `stream=True`, outside context manager, r is Nonetype
@@ -157,8 +159,11 @@ def main():
                     print("Problem has been fixed. Now, you are good to go!\n")
                     sys.exit()
                 else:
-                    server_ip = get_server_ip(settings.GITHUB_URL)
-                    if server_ip:
+                    try:
+                        server_ip = get_server_ip(settings.GITHUB_URL)
+                    except:
+                        pass
+                    else:
                         print(f"Github server IP is <{server_ip}>")
                     hosts_github_ip = get_hosts_githubip()
                     print(f"Github parsed IP is <{parsed_ip}>.")
