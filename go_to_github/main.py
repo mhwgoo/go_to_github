@@ -7,28 +7,24 @@ from pathlib import Path
 import requests
 from lxml import etree
 from fake_user_agent.main import user_agent
-from . import settings
 
 
 ua = user_agent()
 headers = {"User-Agent": ua}
-proxy_dict = {"https": "http://127.0.0.1:1086"}
 
 
 def fetch(url, proxies=None):
     try:
-        with requests.get(url, headers=headers, proxies=proxies) as r:
+        with requests.get(url, headers=headers, timeout=1, proxies=proxies) as r:
             r.raise_for_status()
     except requests.exceptions.ConnectionError as e:
-        print(
-            f"Connection rejected to <{url}>.\nReason: <{repr(e)}>.\nWill retry once.\n"
-        )
+        print(f"Connection rejected to <{url}>.\nReason: <{repr(e)}>.\n")
     except requests.exceptions.ConnectTimeout:
-        print(f"Connection to <{url}> timed out. Will retry  once.\n")
+        print(f"Connection to <{url}> timed out.\n")
     except requests.exceptions.ReadTimeout:
-        print(f"Read from <{url}> timed out. Will retry once.\n")
+        print(f"Read from <{url}> timed out.\n")
     except Exception as e:
-        print(f"{repr(e)} when fetching <{url}>. Will retry once.\n")
+        print(f"{repr(e)} when fetching <{url}>.\n")
     else:
         return r
 
@@ -72,8 +68,8 @@ def read_and_write(parsed_ip):
             config = settings.CONFIG_LIST
             config.append(github_line)
             for line in config:
-                if line not in hosts_data:
-                    hosts_data.append(line)
+                if line.strip() not in hosts_data:
+                    hosts_data.append(line.strip())
             f.seek(0)
             for line in hosts_data:
                 f.writelines(line + "\n")
@@ -124,7 +120,9 @@ def test_url(url, proxies=None):
 
 def get_server_ip(url, proxies=None):
     try:
-        with requests.get(url, headers=headers, stream=True, proxies=proxies) as r:
+        with requests.get(
+            url, headers=headers, timeout=1, stream=True, proxies=proxies
+        ) as r:
             r.raise_for_status()
             # NOTE `stream=True`, outside context manager, r is Nonetype
             ip, port = r.raw.connection.sock.getpeername()
@@ -142,32 +140,45 @@ def get_server_ip(url, proxies=None):
 
 def main():
     print(f"Testing <{settings.GITHUB_URL}> reachability...\n")
-    is_reachable = test_url(settings.GITHUB_URL)
-    if is_reachable:
-        print("You are good to go!\n")
-        sys.exit()
-    else:
-        print("You can not reach Github.The program is starting to nail it...\n")
-        res = fetch(settings.URL)
-        if res and res.status_code < 400:
-            parsed_ip = parse(res.text)
-            backup()
-            read_and_write(parsed_ip)
-            is_reachable = test_url(settings.GITHUB_URL)
-            if is_reachable:
-                print("Problem has been fixed. Now, you are good to go!\n")
-                sys.exit()
-            else:
-                server_ip = get_server_ip(settings.GITHUB_URL)
-                print(f"Github server IP is <{server_ip}>")
-                hosts_github_ip = get_hosts_githubip()
-                print(f"Github parsed IP is <{parsed_ip}>.")
-                print(f"Github hosts IP is <{hosts_github_ip}>.\n")
-                if parsed_ip == hosts_github_ip:
-                    print("Github is slow to respond. Try again.\n")
-                else:
-                    print("Something went wrong. Try again.\n")
-                    restore_backup()
-                sys.exit()
-        else:
+    try:
+        is_reachable = test_url(settings.GITHUB_URL)
+        if is_reachable:
+            print("You are good to go!\n")
             sys.exit()
+        else:
+            print("You can not reach Github.The program is starting to nail it...\n")
+            res = fetch(settings.URL)
+            if res and res.status_code < 400:
+                parsed_ip = parse(res.text)
+                backup()
+                read_and_write(parsed_ip)
+                is_reachable = test_url(settings.GITHUB_URL)
+                if is_reachable:
+                    print("Problem has been fixed. Now, you are good to go!\n")
+                    sys.exit()
+                else:
+                    server_ip = get_server_ip(settings.GITHUB_URL)
+                    if server_ip:
+                        print(f"Github server IP is <{server_ip}>")
+                    hosts_github_ip = get_hosts_githubip()
+                    print(f"Github parsed IP is <{parsed_ip}>.")
+                    print(f"Github hosts IP is <{hosts_github_ip}>.\n")
+                    if parsed_ip == hosts_github_ip:
+                        print("Github is slow to respond, but can connect.\n")
+                    else:
+                        print("Something went wrong. Please try gotogithub again.\n")
+                        restore_backup()
+                    sys.exit()
+            else:
+                sys.exit()
+    except KeyboardInterrupt:
+        print("Opt out by you.")
+
+
+if __name__ == "__main__":
+    import settings
+
+    main()
+
+else:
+    from . import settings
