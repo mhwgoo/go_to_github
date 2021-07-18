@@ -2,7 +2,7 @@
 
 # Notice
 This project only applies to `macOS` and `Linux`.
-It might be in need for people who come from coutries blocking github.
+It might be in need for people who come from countries blocking github.
 
 # Usage
 On your terminal:
