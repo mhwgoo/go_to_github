@@ -15,7 +15,7 @@ headers = {"User-Agent": ua}
 
 def fetch(url, proxies=None):
     try:
-        with requests.get(url, headers=headers, timeout=5, proxies=proxies) as r:
+        with requests.get(url, headers=headers, proxies=proxies) as r:
             r.raise_for_status()
     except requests.exceptions.ConnectionError as e:
         print(f"Connection rejected to <{url}>.\nReason: <{repr(e)}>.\n")
@@ -120,9 +120,7 @@ def test_url(url, proxies=None):
 
 def get_server_ip(url, proxies=None):
     try:
-        with requests.get(
-            url, headers=headers, timeout=5, stream=True, proxies=proxies
-        ) as r:
+        with requests.get(url, headers=headers, stream=True, proxies=proxies) as r:
             r.raise_for_status()
             # NOTE `stream=True`, outside context manager, r is Nonetype
             ip, port = r.raw.connection.sock.getpeername()
