@@ -1,11 +1,10 @@
 `go_to_github` is a tool to test whether `github.com` is reachable right now. If not, it will work it out automatically.
 
 # Notice
-This project only applies to `macOS` and `Linux`.
 It might be in need for people who come from countries blocking github.
+This project only applies to `macOS` and `Linux`.
 
 # Usage
-On your terminal:
 ```python
 sudo gotogithub
 
