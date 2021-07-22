@@ -20,13 +20,13 @@ def fetch(url, proxies=None):
         ) as r:
             r.raise_for_status()
     except requests.exceptions.ConnectionError as e:
-        print(f"Connection rejected to <{url}>.\nReason: <{repr(e)}>.\n")
+        print(f"Connection rejected to <{url}>.\nReason: <{e}>.\n")
     except requests.exceptions.ConnectTimeout:
         print(f"Connection to <{url}> timed out.\n")
     except requests.exceptions.ReadTimeout:
         print(f"Read from <{url}> timed out.\n")
     except Exception as e:
-        print(f"{repr(e)} when fetching <{url}>.\n")
+        print(f"{e} when fetching <{url}>.\n")
     else:
         return r
 
@@ -40,7 +40,9 @@ def parse(response):
 
 
 def read_and_write(parsed_ip):
-    if os.access(settings.HOSTS_PATH, os.W_OK):
+    try:
+        # EAFP is more pythonic than LBYL
+        # if os.access(settings.HOSTS_PATH, os.W_OK):
         with open(settings.HOSTS_PATH, "r+") as f:
             hosts_data = f.readlines()
             for index, line in enumerate(hosts_data):
@@ -76,7 +78,7 @@ def read_and_write(parsed_ip):
             for line in hosts_data:
                 f.writelines(line + "\n")
             f.truncate()
-    else:
+    except PermissionError:
         print(
             "You aren't permitted to writing hosts file. Please switch to root user and retry.\n"
         )
@@ -93,8 +95,10 @@ def get_hosts_githubip():
 
 
 def backup():
+    # check if path exists
     if not glob.glob(str(settings.LOCAL_DIR)):
         settings.LOCAL_DIR.mkdir(parents=True, exist_ok=True)
+    # compare two files
     if not filecmp.cmp(settings.HOSTS_PATH, settings.BACKUP_FILE):
         shutil.copy2(settings.HOSTS_PATH, settings.BACKUP_FILE)
         print(
@@ -135,13 +139,13 @@ def get_server_ip(url, proxies=None):
     except requests.exceptions.ReadTimeout:
         print(f"Read from <{url}> timed out.\n")
     except Exception as e:
-        print(f"{repr(e)} when fetching <{url}>.\n")
+        print(f"{e} when fetching <{url}>.\n")
     else:
         return ip
 
 
 def main():
-    print(f"Testing <{settings.GITHUB_URL}> reachability...\n")
+    print(f"\nTesting <{settings.GITHUB_URL}> reachability...\n")
     try:
         is_reachable = test_url(settings.GITHUB_URL)
         if is_reachable:
@@ -154,9 +158,11 @@ def main():
                 parsed_ip = parse(res.text)
                 backup()
                 read_and_write(parsed_ip)
-                try:
-                    is_reachable = test_url(settings.GITHUB_URL)
-                except:
+                is_reachable = test_url(settings.GITHUB_URL)
+                if is_reachable:
+                    print("Problem has been fixed. Now, you are good to go!\n")
+                    sys.exit()
+                else:
                     hosts_github_ip = get_hosts_githubip()
                     print(f"Github parsed IP is <{parsed_ip}>.")
                     print(f"Github hosts IP is <{hosts_github_ip}>.\n")
@@ -166,9 +172,10 @@ def main():
                         print("Something went wrong. Please try gotogithub again.\n")
                         restore_backup()
                     sys.exit()
-                else:
-                    print("Problem has been fixed. Now, you are good to go!\n")
-                    sys.exit()
+            else:
+                sys.exit(
+                    "Failed to fetch current github ip. Please try gotogithub later."
+                )
     except KeyboardInterrupt:
         print("Opt out by you.")
 
