@@ -16,7 +16,7 @@ headers = {"User-Agent": ua}
 def fetch(url, proxies=None):
     try:
         with requests.get(
-            url, headers=headers, timeout=(9.05, 12), proxies=proxies
+            url, headers=headers, timeout=(18.05, 27), proxies=proxies
         ) as r:
             r.raise_for_status()
     except requests.exceptions.ConnectionError as e:
@@ -127,7 +127,7 @@ def test_url(url, proxies=None):
 def get_server_ip(url, proxies=None):
     try:
         with requests.get(
-            url, headers=headers, timeout=(9.05, 12), stream=True, proxies=proxies
+            url, headers=headers, timeout=(18.05, 27), stream=True, proxies=proxies
         ) as r:
             r.raise_for_status()
             # NOTE `stream=True`, outside context manager, r is Nonetype
