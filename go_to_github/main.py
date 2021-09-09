@@ -1,9 +1,9 @@
-import os
+import platform
 import sys
 import glob
 import shutil
 import filecmp
-from pathlib import Path
+import subprocess
 import requests
 from lxml import etree
 from fake_user_agent.main import user_agent
@@ -144,6 +144,21 @@ def get_server_ip(url, proxies=None):
         return ip
 
 
+def flush_dns_cache():
+    os_name = platform.system()
+    if os_name == "Darwin":
+        cmd = "sudo dscacheutil -flushcache;sudo killall -HUP mDNSResponder"
+    if os_name == "Linux":
+        cmd = "sudo systemd-resolve --flush-caches"
+    p = subprocess.run(
+        cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+    )
+    if p.returncode == 0:
+        return True
+    else:
+        return False
+
+
 def main():
     print(f"\nTesting <{settings.GITHUB_URL}> reachability...\n")
     try:
@@ -158,6 +173,9 @@ def main():
                 parsed_ip = parse(res.text)
                 backup()
                 read_and_write(parsed_ip)
+                result = flush_dns_cache()
+                if result:
+                    print("DNS cache flushed\n")
                 is_reachable = test_url(settings.GITHUB_URL)
                 if is_reachable:
                     print("Problem has been fixed. Now, you are good to go!\n")

@@ -18,4 +18,3 @@ keywords = "python, github, web connection, local host"
 
 [tool.flit.scripts]
 gotogithub = "go_to_github.main:main"
-
