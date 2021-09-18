@@ -1,5 +1,6 @@
 import platform
 import sys
+import os
 import glob
 import shutil
 import filecmp
@@ -94,11 +95,17 @@ def get_hosts_githubip():
     return hosts_github_ip
 
 
-def backup():
-    # check if path exists
+def check_backup_file():
     if not glob.glob(str(settings.LOCAL_DIR)):
-        settings.LOCAL_DIR.mkdir(parents=True, exist_ok=True)
-    # compare two files
+        os.makedirs(settings.LOCAL_DIR)
+        f = open(settings.BACKUP_FILE, "w").close()
+    else:
+        if not os.path.isfile(settings.BACKUP_FILE):
+            f = open(settings.BACKUP_FILE, "w").close()
+
+
+def backup():
+    check_backup_file()
     if not filecmp.cmp(settings.HOSTS_PATH, settings.BACKUP_FILE):
         shutil.copy2(settings.HOSTS_PATH, settings.BACKUP_FILE)
         print(
@@ -107,6 +114,7 @@ def backup():
 
 
 def restore_backup():
+    check_backup_file()
     shutil.copy2(settings.BACKUP_FILE, settings.HOSTS_PATH)
     print(f"[{settings.HOSTS_PATH}] has been restored to the original version.\n")
 
@@ -131,7 +139,7 @@ def get_server_ip(url, proxies=None):
         ) as r:
             r.raise_for_status()
             # NOTE `stream=True`, outside context manager, r is Nonetype
-            ip, port = r.raw.connection.sock.getpeername()
+            ip, _ = r.raw.connection.sock.getpeername()
     except requests.exceptions.ConnectionError:
         print(f"Connection rejected to <{url}>.\n")
     except requests.exceptions.ConnectTimeout:
