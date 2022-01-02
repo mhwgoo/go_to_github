@@ -1,4 +1,5 @@
 import os
+import platform
 from pathlib import Path
 
 URL = "https://github.com.ipaddress.com/"
@@ -26,6 +27,9 @@ GITHUB_HOST_NAME = "github.com"
 GLOBAL_HOST_NAME = "github.global.ssl.fastly.net"
 CDN_HOST_NAME = "ssets-cdn.github.com"
 
-HOSTS_PATH = "/private/etc/hosts"
+if platform.system() == 'Darwin':
+    HOSTS_PATH = "/private/etc/hosts"
+else:
+    HOSTS_PATH = "/etc/hosts"
 LOCAL_DIR = Path(os.environ["HOME"]).absolute() / ".local" / "share" / "gotogithub"
 BACKUP_FILE = os.path.join(LOCAL_DIR, "hosts")

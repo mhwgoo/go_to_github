@@ -31,12 +31,9 @@ def fetch(url, proxies=None):
     else:
         return r
 
-
 def parse(response):
     lxml_element = etree.HTML(response)
-    ip_address = lxml_element.xpath(
-        "/html/body/div/main/section[2]/table/tbody/tr[9]/td/div/a/text()"
-    )
+    ip_address = lxml_element.xpath("/html/body/div/main/section[1]/table/tbody/tr[6]/td/ul/li")
     return ip_address[0]
 
 
